@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finure | The Financial Operating System</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif']
+                    },
+                    colors: {
+                        finure: {
+                            bg: '#020305',
+                            card: '#0A0C10',
+                            border: 'rgba(255,255,255,0.08)',
+                            primary: '#4F46E5', 
+                            text: '#F8FAFC',
+                            muted: '#94A3B8'
+                        }
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #020305;
+            color: #F8FAFC;
+            overflow-x: hidden;
+        }
+
+        /* Texture Overlay */
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
+        }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(10, 12, 16, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+        
+        /* 3D Container */
+        #canvas-container {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+        }
+
+        /* Animation Utility */
+        .anim-element { opacity: 0; transform: translateY(40px); }
+        
+        h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.03em; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #020305; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    </style>
+</head>
+<body class="antialiased selection:bg-indigo-500/30">
+
+    <div id="canvas-container"></div>
+    <div class="noise-overlay"></div>
+
+    <nav class="fixed w-full z-40 top-0 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 mt-4">
+            <div class="glass-panel rounded-full px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-gradient-to-tr from-indigo-500 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">F</div>
+                    <span class="text-xl font-bold tracking-tight text-white">Finure</span>
+                </div>
+                
+                <div class="hidden md:flex gap-8 text-sm font-medium text-finure-muted">
+                    <a href="#solutions" class="hover:text-white transition-colors">Core System</a>
+                    <a href="#capabilities" class="hover:text-white transition-colors">Capabilities</a>
+                    <a href="#pricing" class="hover:text-white transition-colors">Pricing</a>
+                </div>
+
+                <a href="#pricing" class="px-5 py-2 text-sm font-medium bg-white text-black rounded-full hover:bg-gray-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                    Get Access
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="relative min-h-screen flex items-center justify-center pt-20">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+            
+            <div class="space-y-8">
+                <div class="anim-element inline-flex items-center gap-2 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-xs font-medium text-indigo-300">
+                    <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                    Finure OS Enterprise
+                </div>
+                
+                <h1 class="anim-element text-6xl lg:text-7xl font-bold leading-[1.05] text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-slate-500">
+                    The Financial <br> Operating System.
+                </h1>
+                
+                <p class="anim-element text-lg text-finure-muted max-w-xl leading-relaxed">
+                    Accounting, Reconciliation, Escrow, and AI Intelligence in one unified platform. Built for MSMEs that demand scale, security, and trust.
+                </p>
+                
+                <div class="anim-element flex flex-col sm:flex-row gap-4 pt-4">
+                    <button class="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition-all shadow-[0_10px_40px_-10px_rgba(79,70,229,0.5)]">
+                        Start Free Trial
+                    </button>
+                    <button class="px-8 py-4 glass-panel hover:bg-white/10 text-white font-medium rounded-xl transition-all flex items-center gap-2">
+                        <span>View Architecture</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="hidden lg:block relative h-[500px] w-full anim-element perspective-container" data-tilt data-tilt-max="5" data-tilt-speed="1000">
+                <div class="absolute inset-0 m-auto w-[90%] h-[380px] glass-panel rounded-2xl border border-white/10 p-6 shadow-2xl flex flex-col justify-between">
+                    <div class="flex justify-between items-center border-b border-white/5 pb-4">
+                        <div class="flex gap-2">
+                            <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500/50"></div>
+                        </div>
+                        <div class="text-xs font-mono text-green-400">● System Operational</div>
+                    </div>
+                    
+                    <div class="space-y-4 font-mono text-xs text-indigo-200/80 mt-4">
+                        <div class="flex justify-between"><span>> Ledger Sync</span><span class="text-white">Active</span></div>
+                        <div class="flex justify-between"><span>> Bank API</span><span class="text-white">Connected (HDFC, SBI)</span></div>
+                        <div class="flex justify-between"><span>> Escrow Status</span><span class="text-green-400">Secured</span></div>
+                        
+                        <div class="h-32 mt-6 relative overflow-hidden border-t border-white/5 pt-4">
+                            <svg class="w-full h-full" viewBox="0 0 300 100" preserveAspectRatio="none">
+                                <path d="M0,100 C50,80 100,90 150,40 S250,60 300,10" fill="none" stroke="#4F46E5" stroke-width="2" />
+                                <path d="M0,100 C50,80 100,90 150,40 S250,60 300,10 V100 H0 Z" fill="url(#grad)" opacity="0.2" />
+                                <defs>
+                                    <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0" stop-color="#4F46E5"/>
+                                        <stop offset="1" stop-color="transparent"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="solutions" class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="mb-16 anim-element">
+                <h2 class="text-4xl font-bold mb-4">Core Architecture</h2>
+                <p class="text-finure-muted">The foundational layers of the Finure Operating System.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-6">
+                
+                <div class="anim-element col-span-1 md:col-span-2 row-span-2 glass-card rounded-3xl p-10 relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-gradient-to-br from-indigo-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center mb-6 text-indigo-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Core Ledger & Accounting</h3>
+                        <p class="text-finure-muted mb-6">A real-time digital ledger that replaces Tally and Excel. Fully GST-ready structure with party-wise tracking.</p>
+                        
+                        <ul class="space-y-2 text-sm text-gray-400 font-mono">
+                            <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Real-time debit/credit updates</li>
+                            <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Invoice-linked ledger entries</li>
+                            <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Auto-updating balances</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="anim-element glass-card rounded-3xl p-8 relative overflow-hidden hover:border-blue-500/30">
+                    <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4 text-blue-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Smart Reconciliation</h3>
+                    <p class="text-sm text-finure-muted">Auto-fetch bank transactions and match them to invoices. Detect mismatches instantly.</p>
+                </div>
+
+                <div class="anim-element glass-card rounded-3xl p-8 relative overflow-hidden hover:border-green-500/30">
+                    <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center mb-4 text-green-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Payment Guarantee</h3>
+                    <p class="text-sm text-finure-muted">Integrated Escrow locks funds until delivery. The ultimate trust layer for B2B.</p>
+                </div>
+
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                 <div class="anim-element glass-card rounded-3xl p-8 flex items-start gap-6">
+                    <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex-shrink-0 flex items-center justify-center text-purple-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">AI Cash-Flow Prediction</h3>
+                        <p class="text-sm text-finure-muted mb-3">Predict cash gaps 30/60/90 days in advance. Know exactly when you'll need capital.</p>
+                        <span class="text-xs bg-purple-900/40 text-purple-300 px-2 py-1 rounded">Scenario Forecasting</span>
+                    </div>
+                 </div>
+
+                 <div class="anim-element glass-card rounded-3xl p-8 flex items-start gap-6">
+                    <div class="w-12 h-12 bg-orange-500/20 rounded-lg flex-shrink-0 flex items-center justify-center text-orange-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Credit & Buyer Intelligence</h3>
+                        <p class="text-sm text-finure-muted mb-3">Track payment consistency scores. Identify risky buyers before you transact.</p>
+                        <span class="text-xs bg-orange-900/40 text-orange-300 px-2 py-1 rounded">Risk Tagging</span>
+                    </div>
+                 </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="capabilities" class="py-24 bg-[#05070A]">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <h2 class="anim-element text-3xl font-bold mb-12 border-b border-white/10 pb-6">System Capabilities</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                
+                <div class="anim-element space-y-4">
+                    <h4 class="text-white font-bold flex items-center gap-2">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full"></span> Automation
+                    </h4>
+                    <ul class="text-sm text-finure-muted space-y-3">
+                        <li>• Automated Payment Reminders</li>
+                        <li>• Auto-freeze risky transactions</li>
+                        <li>• Low cash warnings</li>
+                        <li>• Rules Engine Configuration</li>
+                    </ul>
+                </div>
+
+                <div class="anim-element space-y-4">
+                    <h4 class="text-white font-bold flex items-center gap-2">
+                        <span class="w-2 h-2 bg-indigo-500 rounded-full"></span> Banking & Rails
+                    </h4>
+                    <ul class="text-sm text-finure-muted space-y-3">
+                        <li>• Multi-bank account sync</li>
+                        <li>• Unified cash view</li>
+                        <li>• API-ready architecture</li>
+                        <li>• Future-ready for UPI/B2B</li>
+                    </ul>
+                </div>
+
+                <div class="anim-element space-y-4">
+                    <h4 class="text-white font-bold flex items-center gap-2">
+                        <span class="w-2 h-2 bg-purple-500 rounded-full"></span> Management
+                    </h4>
+                    <ul class="text-sm text-finure-muted space-y-3">
+                        <li>• Vendor & Customer Profiles</li>
+                        <li>• Transaction History</li>
+                        <li>• Accountant-friendly exports</li>
+                        <li>• Multi-user roles (Owner/Team)</li>
+                    </ul>
+                </div>
+
+                <div class="anim-element space-y-4">
+                    <h4 class="text-white font-bold flex items-center gap-2">
+                        <span class="w-2 h-2 bg-green-500 rounded-full"></span> Security & Scale
+                    </h4>
+                    <ul class="text-sm text-finure-muted space-y-3">
+                        <li>• Bank-grade encryption</li>
+                        <li>• Audit logs & trails</li>
+                        <li>• Role-based access control</li>
+                        <li>• Scalable Enterprise API</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="py-32 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-indigo-900/10 pointer-events-none"></div>
+        <div class="max-w-4xl mx-auto px-6 text-center anim-element">
+            <h2 class="text-2xl md:text-3xl font-medium leading-relaxed text-gray-400">
+                                                          </h2>
+            <div class="mt-12">
+                <p class="text-3xl md:text-5xl font-bold text-white">
+                    Finure is a complete <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400">Financial Operating System</span>
+                </p>
+                <p class="mt-6 text-lg text-finure-muted">
+                    Helping MSMEs earn trust, manage money, predict cash, and grow safely.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing" class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-16 anim-element">
+                <h2 class="text-4xl font-bold mb-4">Transparent Pricing</h2>
+                <p class="text-finure-muted">Invest in infrastructure, not subscriptions.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                
+                <div class="anim-element glass-card p-10 rounded-3xl border-t-4 border-t-transparent hover:border-t-indigo-500 relative group" data-tilt>
+                    <h3 class="text-2xl font-bold text-white mb-2">Annual Growth</h3>
+                    <p class="text-sm text-finure-muted mb-8">For scaling businesses.</p>
+                    
+                    <div class="flex items-baseline gap-1 mb-8">
+                        <span class="text-5xl font-bold text-white tracking-tight">₹5,999</span>
+                        <span class="text-finure-muted">/year</span>
+                    </div>
+
+                    <ul class="space-y-4 mb-8 text-sm text-gray-300">
+                        <li class="flex gap-3 items-center"><span class="text-indigo-400">✓</span> Full Ledger & Accounting</li>
+                        <li class="flex gap-3 items-center"><span class="text-indigo-400">✓</span> Smart Reconciliation</li>
+                        <li class="flex gap-3 items-center"><span class="text-indigo-400">✓</span> GST-Ready Reports</li>
+                    </ul>
+
+                    <button class="w-full py-4 rounded-xl border border-white/20 font-medium text-white hover:bg-white hover:text-black transition-all">
+                        Choose Annual
+                    </button>
+                </div>
+
+                <div class="anim-element glass-card p-10 rounded-3xl border border-indigo-500/30 bg-indigo-900/10 relative group" data-tilt>
+                    <div class="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full text-xs font-bold text-white shadow-lg uppercase tracking-wider">
+                        Most Popular
+                    </div>
+
+                    <h3 class="text-2xl font-bold text-white mb-2">Lifetime Access</h3>
+                    <p class="text-sm text-finure-muted mb-8">Own your infrastructure forever.</p>
+                    
+                    <div class="flex items-baseline gap-1 mb-8">
+                        <span class="text-5xl font-bold text-white tracking-tight">₹39,999</span>
+                        <span class="text-finure-muted">/life</span>
+                    </div>
+
+                    <ul class="space-y-4 mb-8 text-sm text-gray-300">
+                        <li class="flex gap-3 items-center"><span class="text-green-400">✓</span> <b>All 13 Modules Included</b></li>
+                        <li class="flex gap-3 items-center"><span class="text-green-400">✓</span> Payment Guarantee Access</li>
+                        <li class="flex gap-3 items-center"><span class="text-green-400">✓</span> Future Updates Free</li>
+                        <li class="flex gap-3 items-center"><span class="text-green-400">✓</span> Dedicated Support</li>
+                    </ul>
+
+                    <button class="w-full py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 font-medium text-white shadow-lg hover:shadow-indigo-500/50 hover:scale-[1.02] transition-all">
+                        Get Lifetime Access
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="border-t border-white/10 bg-[#020202] py-16">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <h2 class="text-3xl font-bold mb-6">Finure</h2>
+            <div class="flex justify-center gap-8 mb-8 text-sm text-finure-muted">
+                <a href="#" class="hover:text-white transition">Product</a>
+                <a href="#" class="hover:text-white transition">Security</a>
+                <a href="#" class="hover:text-white transition">Terms</a>
+            </div>
+            <p class="text-xs text-finure-muted opacity-50">© 2024 Finure Technologies. Built for Gandhinagar & the World.</p>
+        </div>
+    </footer>
+
+    <script>
+        // 1. Three.js Background
+        const initThreeJS = () => {
+            const container = document.getElementById('canvas-container');
+            const scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x020305, 0.003); // Blend fog
+
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 30;
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // Rotating Globe Network
+            const globeGroup = new THREE.Group();
+            scene.add(globeGroup);
+
+            // Wireframe Icosahedron
+            const geometry = new THREE.IcosahedronGeometry(13, 1);
+            const wireframe = new THREE.WireframeGeometry(geometry);
+            const lineMaterial = new THREE.LineBasicMaterial({ color: 0x4F46E5, transparent: true, opacity: 0.1 });
+            const sphereLines = new THREE.LineSegments(wireframe, lineMaterial);
+            globeGroup.add(sphereLines);
+
+            // Particles
+            const particlesGeo = new THREE.BufferGeometry();
+            const particleCount = 700;
+            const posArray = new Float32Array(particleCount * 3);
+
+            for(let i = 0; i < particleCount * 3; i++) {
+                const r = 16 + Math.random() * 25; 
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                
+                posArray[i] = r * Math.sin(phi) * Math.cos(theta);
+                posArray[i+1] = r * Math.sin(phi) * Math.sin(theta);
+                posArray[i+2] = r * Math.cos(phi);
+            }
+
+            particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particlesMat = new THREE.PointsMaterial({ size: 0.07, color: 0x0EA5E9, transparent: true, opacity: 0.7 });
+            const particlesMesh = new THREE.Points(particlesGeo, particlesMat);
+            globeGroup.add(particlesMesh);
+
+            // Mouse Interaction
+            let mouseX = 0;
+            let mouseY = 0;
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX - window.innerWidth / 2) * 0.001;
+                mouseY = (event.clientY - window.innerHeight / 2) * 0.001;
+            });
+
+            const animate = () => {
+                globeGroup.rotation.y += 0.0015;
+                particlesMesh.rotation.y -= 0.0005;
+
+                globeGroup.rotation.x += 0.05 * (mouseY - globeGroup.rotation.x);
+                globeGroup.rotation.y += 0.05 * (mouseX - globeGroup.rotation.y);
+
+                renderer.render(scene, camera);
+                requestAnimationFrame(animate);
+            };
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            animate();
+        };
+
+        // 2. GSAP Reverse Scroll
+        const initAnimations = () => {
+            gsap.registerPlugin(ScrollTrigger);
+            
+            document.querySelectorAll('.anim-element').forEach((el) => {
+                gsap.to(el, {
+                    scrollTrigger: {
+                        trigger: el,
+                        start: "top 85%",
+                        end: "bottom 10%",
+                        toggleActions: "play reverse play reverse", 
+                    },
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.8,
+                    ease: "power3.out"
+                });
+            });
+
+            // Parallax
+            gsap.to("#canvas-container", {
+                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1 },
+                y: 150
+            });
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initThreeJS();
+            initAnimations();
+            VanillaTilt.init(document.querySelectorAll("[data-tilt]"), { max: 12, speed: 400, glare: true, "max-glare": 0.1 });
+        });
+    </script>
+</body>
+</html>
